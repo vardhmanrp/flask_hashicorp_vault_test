@@ -4,6 +4,8 @@ import os
 from traceback import print_exc
 import sys
 import psycopg2
+import itertools
+
 
 app = Flask(__name__)
 client = None
@@ -83,15 +85,24 @@ def getProducts():
             return {"Error : unable to connect to DB"}
         print("db connection is successful")
         cur = conn.cursor()
-
+        
         cur.execute("select * from products")
+        columns = list(cur.description)
         products = cur.fetchall()
+        results = []
+        for row in products:
+            row_dict = {}
+            for i, col in enumerate(columns):
+                row_dict[col.name] = row[i]
+            results.append(row_dict)
+
         cur.close()
         conn.close()
-        if not products:
+        if not results:
             return {"ERROR: no products found"}
-        print(products)
-        return products
+        print(results)
+        print(type(results))
+        return {"data":results}
             
             
     except Exception as e:
