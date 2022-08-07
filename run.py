@@ -10,31 +10,52 @@ import itertools
 app = Flask(__name__)
 client = None
 
+client = hvac.Client(url=os.environ['VAULT_ADDR'])
+
 def vault_token_auth():
     try:
         global client
-        client = hvac.Client(
-        url=os.environ['VAULT_ADDR'],
-        token=os.environ['VAULT_TOKEN'])
+        authType = os.environ['VAULT_AUTH'] 
+        if authType == "token":
+            client.token = os.environ['VAULT_TOKEN']
+        elif authType == "k8s":
+            f = open('/var/run/secrets/kubernetes.io/serviceaccount/token')
+            jwt = f.read()
+            client.auth_kubernetes(os.environ['K8S_VAULT_ROLE'], jwt)
+        elif authType == "aws":
+            import boto3
+            session = boto3.Session()
+            creds = session.get_credentials()
+            client.auth.aws.iam_login(
+                    access_key=creds.access_key,
+                    secret_key=creds.secret_key,
+                    session_token=creds.token,
+                    header_value=os.environ['VAULT_IAM_HEADER'],
+                    role='test-IAM-role,
+                    use_token=True,
+                    region='us-west-1',
+                )
         if client.is_authenticated():
             print("Vault loaded with local token")
+            if authType != "token":
+                os.environ['VAULT_TOKEN'] = client.token
         else:
             print("client unable to found local token trying to authenticating again")
     except Exception as e:
         print(print_exc())
         sys.exit(1)
 
-def vault_k8s_auth():
-    try:
-        f = open('/var/run/secrets/kubernetes.io/serviceaccount/token')
-        jwt = f.read()
-        client.auth_kubernetes(os.environ['K8S_VAULT_ROLE'], jwt)
-        if client.is_authenticated():
-            os.environ['VAULT_TOKEN'] = client.token
-        return client
-    except Exception as e:
-        print(print_exc())
-        return None
+# def vault_k8s_auth():
+#     try:
+#         f = open('/var/run/secrets/kubernetes.io/serviceaccount/token')
+#         jwt = f.read()
+#         client.auth_kubernetes(os.environ['K8S_VAULT_ROLE'], jwt)
+#         if client.is_authenticated():
+#             os.environ['VAULT_TOKEN'] = client.token
+#         return client
+#     except Exception as e:
+#         print(print_exc())
+#         return None
 
 @app.route('/load')
 def reloadAuth():
