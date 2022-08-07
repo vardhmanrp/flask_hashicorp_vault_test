@@ -21,7 +21,7 @@ def vault_token_auth():
         elif authType == "k8s":
             f = open('/var/run/secrets/kubernetes.io/serviceaccount/token')
             jwt = f.read()
-            client.auth_kubernetes(os.environ['K8S_VAULT_ROLE'], jwt)
+            client.auth_kubernetes(os.environ['K8S_VAULT_ROLE'], jwt,mount_point=os.environ['VAULT_AUTH_MOUNT'])
         elif authType == "aws":
             import boto3
             session = boto3.Session()
@@ -34,6 +34,7 @@ def vault_token_auth():
                     role='test-IAM-role,
                     use_token=True,
                     region='us-west-1',
+                    mount_point=os.environ['VAULT_AUTH_MOUNT']
                 )
         if client.is_authenticated():
             print("Vault loaded with local token")
