@@ -26,6 +26,7 @@ def vault_token_auth():
             import boto3
             session = boto3.Session()
             creds = session.get_credentials()
+            print(creds)
             client.auth.aws.iam_login(
                     access_key=creds.access_key,
                     secret_key=creds.secret_key,
@@ -33,7 +34,7 @@ def vault_token_auth():
                     header_value=os.environ['VAULT_IAM_HEADER'],
                     role=os.environ['VAULT_AUTH_ROLE'],
                     use_token=True,
-                    region='us-west-1',
+                    region='us-east-1',
                     mount_point=os.environ['VAULT_AUTH_MOUNT']
                 )
         if client.is_authenticated():
