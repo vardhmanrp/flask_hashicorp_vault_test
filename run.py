@@ -3,6 +3,7 @@ import hvac
 import os
 from traceback import print_exc
 import sys
+import psycopg2
 
 app = Flask(__name__)
 client = None
@@ -33,7 +34,7 @@ def vault_k8s_auth():
         print(print_exc())
         return None
 
-@app.route('/reloadvault')
+@app.route('/load')
 def reloadAuth():
     try:
         vault_token_auth()
@@ -44,12 +45,83 @@ def reloadAuth():
         print(format_exc())
         return "False"
 
+@app.route('/revoke')
+def vaultRevoke():
+    try:
+        os.environ['VAULT_TOKEN']= ""
+    except Exception as e:
+        print(format_exc())
+        return "False"
+
+@app.route('/products')
+def getProducts():
+    try:
+        print("checking login status")
+        if client.is_authenticated():
+            print("logic success")
+        else:
+            print("reattempting login")
+            vault_token_auth()
+        
+        
+        secret_version_response = client.secrets.database.get_static_credentials(
+        name=os.environ['VAULT_DB_ROLE'],mount_point=os.environ['VAULT_DB_MOUNT']
+    )
+        conn = None
+        if not secret_version_response:
+            return {"ERROR: Unable to load credentials"}
+        conn = psycopg2.connect(
+        host=os.environ['DB_HOST'],
+        port=os.environ['DB_PORT'],
+        database=os.environ['DB_NAME'],
+        user=secret_version_response['data']['username'],
+        password=secret_version_response['data']['password'])
+        cur = conn.cursor()
+        if not conn:
+            return {"Error : unable to connect to DB"}
+
+        cur.execute("select * from products")
+        products = cur.fetchall()
+        cur.close()
+        conn.close()
+        if not products:
+            return {"ERROR: no products found"}
+        return products
+            
+            
+    except Exception as e:
+        print(print_exc())
+        return "False"
 
 
 
+@app.route('/database-secret')
+def databaseSecret():
+    try:
+        print("checking login status")
+        if client.is_authenticated():
+            print("logic success")
+        else:
+            print("reattempting login")
+            vault_token_auth()
+        secret_version_response = client.secrets.database.get_static_credentials(
+        name=os.environ['VAULT_DB_ROLE'],mount_point=os.environ['VAULT_DB_MOUNT']
+    )
+        return secret_version_response['data']
+            
+            
+    except Exception as e:
+        print(print_exc())
+        return "False"
 
 @app.route('/')
-def hello():
+def home():
+    print("At home page")
+    return "Welcome to testing Hashicorp test for secret"
+
+
+@app.route('/static-secret')
+def staticSecret():
     print("checking login status")
     if client.is_authenticated():
         print("logic success")
@@ -57,11 +129,12 @@ def hello():
         print("reattempting login")
         vault_token_auth()
     secret_version_response = client.secrets.kv.v2.read_secret_version(
-    path=os.environ['VAULT_DATA_PATH'],mount_point='kv2'
+    path=os.environ['VAULT_DATA_PATH'],mount_point=os.environ['VAULT_KV_MOUNT_POINT']
     )
     return secret_version_response['data']['data']
 
 
+vault_token_auth()
 
 if __name__ == "__main__":
     vault_token_auth()
