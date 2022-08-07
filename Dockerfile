@@ -22,4 +22,4 @@ EXPOSE 5000
 
 RUN ls -la /app
 
-CMD ["flask", "run -h 0.0.0.0"]
+CMD ["flask", "run" ,"-h" , "0.0.0.0"]
