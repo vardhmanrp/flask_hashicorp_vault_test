@@ -12,9 +12,13 @@ COPY . /app
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-ENV VAULT_ADD=http://localhost:8200
+ENV VAULT_ADD="http://localhost:8200"
 ENV VAULT_TOKEN=""
-ENV FLASK_APP="app"
+ENV FLASK_APP="run"
 ENV FLASK_DEBUG=true
 
 EXPOSE 5000
+
+RUN ls -la app/
+
+ENTRYPOINT ["bin/bash flask run"]
