@@ -26,7 +26,7 @@ def vault_token_auth():
             import boto3
             session = boto3.Session()
             creds = session.get_credentials()
-            print(creds)
+            print(creds.access_key)
             client.auth.aws.iam_login(
                     access_key=creds.access_key,
                     secret_key=creds.secret_key,
