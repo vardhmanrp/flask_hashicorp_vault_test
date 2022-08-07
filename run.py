@@ -90,6 +90,7 @@ def getProducts():
         conn.close()
         if not products:
             return {"ERROR: no products found"}
+        print(products)
         return products
             
             
