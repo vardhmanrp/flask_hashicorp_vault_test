@@ -19,6 +19,6 @@ ENV FLASK_DEBUG=true
 
 EXPOSE 5000
 
-RUN ls -la app/
+RUN ls -la /app
 
-ENTRYPOINT ["bin/bash flask run"]
+CMD ["flask", "run"]
