@@ -70,15 +70,19 @@ def getProducts():
         conn = None
         if not secret_version_response:
             return {"ERROR: Unable to load credentials"}
+        print(secret_version_response['data']['username'])
         conn = psycopg2.connect(
         host=os.environ['DB_HOST'],
         port=os.environ['DB_PORT'],
         database=os.environ['DB_NAME'],
         user=secret_version_response['data']['username'],
         password=secret_version_response['data']['password'])
-        cur = conn.cursor()
+        
+
         if not conn:
             return {"Error : unable to connect to DB"}
+        print("db connection is successful")
+        cur = conn.cursor()
 
         cur.execute("select * from products")
         products = cur.fetchall()
