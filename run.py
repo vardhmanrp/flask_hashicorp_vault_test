@@ -1,7 +1,7 @@
 from flask import Flask
 import hvac
 import os
-from traceback import format_exc
+from traceback import print_exc
 import sys
 
 app = Flask(__name__)
@@ -18,7 +18,7 @@ def vault_token_auth():
         else:
             print("client unable to found local token trying to authenticating again")
     except Exception as e:
-        print(format_exc(e))
+        print(print_exc())
         sys.exit(1)
 
 def vault_k8s_auth():
@@ -30,7 +30,7 @@ def vault_k8s_auth():
             os.environ['VAULT_TOKEN'] = client.token
         return client
     except Exception as e:
-        print(format_exc(e))
+        print(print_exc())
         return None
 
 @app.route('/reloadvault')
@@ -57,7 +57,7 @@ def hello():
         print("reattempting login")
         vault_token_auth()
     secret_version_response = client.secrets.kv.v2.read_secret_version(
-    path=os.environ['DATA_PATH'],mount_point='kv2'
+    path=os.environ['VAULT_DATA_PATH'],mount_point='kv2'
     )
     return secret_version_response['data']['data']
 

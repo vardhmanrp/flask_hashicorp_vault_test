@@ -14,6 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 ENV VAULT_ADD="http://localhost:8200"
 ENV VAULT_TOKEN=""
+ENV VAULT_DATA_PATH="dummyPath"
 ENV FLASK_APP="run"
 ENV FLASK_DEBUG=true
 
