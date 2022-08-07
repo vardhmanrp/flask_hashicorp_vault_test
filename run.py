@@ -21,7 +21,7 @@ def vault_token_auth():
         elif authType == "k8s":
             f = open('/var/run/secrets/kubernetes.io/serviceaccount/token')
             jwt = f.read()
-            client.auth_kubernetes(os.environ['K8S_VAULT_ROLE'], jwt,mount_point=os.environ['VAULT_AUTH_MOUNT'])
+            client.auth_kubernetes(os.environ['VAULT_AUTH_ROLE'], jwt,mount_point=os.environ['VAULT_AUTH_MOUNT'])
         elif authType == "aws":
             import boto3
             session = boto3.Session()
@@ -31,7 +31,7 @@ def vault_token_auth():
                     secret_key=creds.secret_key,
                     session_token=creds.token,
                     header_value=os.environ['VAULT_IAM_HEADER'],
-                    role='test-IAM-role,
+                    role=os.environ['VAULT_AUTH_ROLE'],
                     use_token=True,
                     region='us-west-1',
                     mount_point=os.environ['VAULT_AUTH_MOUNT']
